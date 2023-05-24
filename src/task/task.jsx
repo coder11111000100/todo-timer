@@ -6,6 +6,9 @@ import './task.css';
 
 class Task extends React.Component {
   constructor(props) {
+    console.log(props, 'constructor')
+    const {createWithNull} = props
+
     super(props);
     this.timerId = React.createRef(null);
     this.timerMimutesId = React.createRef(null);
@@ -15,7 +18,7 @@ class Task extends React.Component {
       date: props.time,
       checked: false,
       key: true,
-      hasEqualToZero: false,
+      hasEqualToZero: !createWithNull,
       sec: undefined,
       minutes: undefined,
     };
@@ -48,7 +51,7 @@ class Task extends React.Component {
   };
 
   onEditTodo = (e) => {
-    const { changeTodo, todo, index, id, time } = this.props;
+    const { changeTodo, todo, index, id, time, createWithNull } = this.props;
     const { value, checked } = this.state;
     if (this.input.current.checked) {
       clearInterval(this.timerId.current);
@@ -71,6 +74,7 @@ class Task extends React.Component {
             completed: false,
             edit: true,
             time,
+            createWithNull
           });
           this.setState({ value: '' });
         }
@@ -93,6 +97,7 @@ class Task extends React.Component {
           completed: !checked,
           edit: false,
           time,
+          createWithNull
         });
         break;
       case 'click':
@@ -131,7 +136,6 @@ class Task extends React.Component {
                   sec: 0,
                   minutes: 0,
                   key: true,
-                  hasEqualToZero: false,
                 };
               }
               if (minutes === 0) {

@@ -4,7 +4,7 @@ import { Task } from '../task/task';
 import './taskList.css';
 
 function TaskList({ store: todos, changeTodo, useKey, oncurrentTimer }) {
-  const elemToCreate = (id, func, todo, i, completed, time, minutes, sec) => {
+  const elemToCreate = (id, func, todo, i, completed, time, minutes, sec, createWithNull) => {
     return (
       <Task
         key={id}
@@ -17,6 +17,7 @@ function TaskList({ store: todos, changeTodo, useKey, oncurrentTimer }) {
         minutes={minutes}
         sec={sec}
         oncurrentTimer={oncurrentTimer}
+        createWithNull={createWithNull}
       />
     );
   };
@@ -35,7 +36,8 @@ function TaskList({ store: todos, changeTodo, useKey, oncurrentTimer }) {
                 item.completed,
                 item.time,
                 item.minutes,
-                item.sec
+                item.sec,
+                item.createWithNull
               );
             }
             if (useKey === 'Active') {
@@ -48,7 +50,8 @@ function TaskList({ store: todos, changeTodo, useKey, oncurrentTimer }) {
                   item.completed,
                   item.time,
                   item.minutes,
-                  item.sec
+                  item.sec,
+                  item.createWithNull
                 );
             }
             if (useKey === 'Completed') {
@@ -61,7 +64,8 @@ function TaskList({ store: todos, changeTodo, useKey, oncurrentTimer }) {
                   item.completed,
                   item.time,
                   item.minutes,
-                  item.sec
+                  item.sec,
+                  item.createWithNull
                 );
             }
             return null;

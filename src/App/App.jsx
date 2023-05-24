@@ -55,6 +55,7 @@ export default class App extends React.Component {
                 completed: false,
                 edit: false,
                 time: new Date(),
+                createWithNull: sec === 0 && minutes === 0
               },
               ...store,
             ],
