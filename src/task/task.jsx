@@ -8,37 +8,40 @@ class Task extends React.Component {
   constructor(props) {
     super(props);
     this.timerId = React.createRef(null);
+    this.timerMimutesId = React.createRef(null);
+    this.input = React.createRef(null);
     this.state = {
       value: '',
-      checked: false,
       date: props.time,
+      checked: false,
       key: true,
-      sec: 0,
-      minutes: 0,
-      hour: 0,
-      deys: 0,
+      hasEqualToZero: false,
+      sec: undefined,
+      minutes: undefined,
     };
   }
 
   componentDidMount() {
-    const { intial, id } = this.props;
-    if (intial[id]) {
-      const { deys, hour, minutes, sec } = intial[id];
-      this.setState({ deys, hour, minutes, sec });
-    }
+    console.log('mount');
+    const { minutes, sec } = this.props;
+    this.setState({ minutes, sec });
   }
 
   componentWillUnmount() {
+    console.log('Unmount');
+    clearInterval(this.timerMimutesId.current);
     clearInterval(this.timerId.current);
-    const { id, onDefaultState } = this.props;
-    const { deys, hour, minutes, sec } = this.state;
-    onDefaultState({ [id]: { deys, hour, minutes, sec } });
+    const { id, oncurrentTimer } = this.props;
+    const { minutes, sec } = this.state;
+    if (minutes !== undefined || sec !== undefined) {
+      oncurrentTimer(id, minutes, sec);
+    }
   }
 
   newTimeInMinutes = () => {
     const { date } = this.state;
     const { time } = this.props;
-    setInterval(() => {
+    this.timerMimutesId.current = setInterval(() => {
       this.setState({ date: time });
     }, 60000);
     return date;
@@ -47,6 +50,13 @@ class Task extends React.Component {
   onEditTodo = (e) => {
     const { changeTodo, todo, index, id, time } = this.props;
     const { value, checked } = this.state;
+    if (this.input.current.checked) {
+      clearInterval(this.timerId.current);
+      this.setState({ key: true });
+    } else {
+      clearInterval(this.timerId.current);
+      this.setState({ key: true });
+    }
     const v = e.target.value.trim();
     switch (e.type) {
       case 'keyup':
@@ -97,53 +107,94 @@ class Task extends React.Component {
   };
 
   onTimer = () => {
-    this.setState((pre) => {
+    const { sec: s, minutes: m, id, oncurrentTimer } = this.props;
+    const { hasEqualToZero } = this.state;
+    if (this.input.current.checked) {
       clearInterval(this.timerId.current);
-      const { key } = pre;
-      if (key) {
-        this.timerId.current = setInterval(() => {
-          this.setState((prev) => {
-            const { sec, minutes, hour, deys } = prev;
-            if (hour === 23 && minutes === 59 && sec === 59) {
-              return {
-                sec: 0,
-                minutes: 0,
-                hour: 0,
-                deys: deys + 1,
-              };
-            }
-            if (minutes === 59) {
-              return {
-                sec: 0,
-                minutes: 0,
-                hour: hour + 1,
-              };
-            }
-            if (sec === 59) {
-              return {
-                sec: 0,
-                minutes: minutes + 1,
-              };
-            }
+      this.setState({ key: true });
+      return;
+    }
 
-            return {
-              sec: sec + 1,
-            };
-          });
-        }, 1000);
-      }
+    if (m !== 0 || (s !== 0 && hasEqualToZero)) {
+      console.log('-1');
+      this.setState((pre) => {
+        clearInterval(this.timerId.current);
+        const { key } = pre;
+        if (key) {
+          this.timerId.current = setInterval(() => {
+            this.setState((prev) => {
+              const { sec, minutes } = prev;
+              if (minutes === 0 && !sec) {
+                clearInterval(this.timerId.current);
+                oncurrentTimer(id, minutes, sec);
+                return {
+                  sec: 0,
+                  minutes: 0,
+                  key: true,
+                  hasEqualToZero: false,
+                };
+              }
+              if (minutes === 0) {
+                return {
+                  sec: sec - 1,
+                  minutes: 0,
+                };
+              }
+              if (sec === 0 && minutes > 0) {
+                return {
+                  sec: 59,
+                  minutes: minutes - 1,
+                };
+              }
 
-      return { key: !key };
-    });
+              return {
+                sec: sec - 1,
+              };
+            });
+          }, 1000);
+        }
+
+        return { key: !key };
+      });
+      return;
+    }
+
+    if (!hasEqualToZero) {
+      console.log('+1');
+      this.setState((pre) => {
+        clearInterval(this.timerId.current);
+        const { key } = pre;
+        if (key) {
+          this.timerId.current = setInterval(() => {
+            this.setState((prev) => {
+              const { sec, minutes } = prev;
+              if (sec === 59) {
+                return {
+                  sec: 0,
+                  minutes: minutes + 1,
+                };
+              }
+
+              return {
+                sec: sec + 1,
+              };
+            });
+          }, 1000);
+        }
+
+        return { key: !key };
+      });
+    }
   };
 
   render() {
     const { todo, completed } = this.props;
-    const { value, checked, key, sec, minutes, hour, deys } = this.state;
+    const { value, checked, key, sec, minutes } = this.state;
     return (
       <li className={completed ? 'completed' : value}>
         <div className="view">
           <input
+            ref={this.input}
             className="toggle"
             type="checkbox"
             checked={completed ? true : checked}
@@ -155,7 +206,7 @@ class Task extends React.Component {
               <button onClick={this.onTimer} type="button" className={key ? 'icon icon-play' : 'icon icon-pause'}>
                 {' '}
               </button>
-              deys:{deys} {hour}:{minutes > 9 ? minutes : `0${minutes}`}:{sec > 9 ? sec : `0${sec}`}
+              {minutes > 9 ? minutes : `0${minutes}`}:{sec > 9 ? sec : `0${sec}`}
             </span>
 
             <span className="created">{formatDistanceToNow(this.newTimeInMinutes())}</span>
@@ -183,26 +234,27 @@ class Task extends React.Component {
   }
 }
 
-// const elem = document.querySelector('.view');
-// elem.addEventListener('click', (e) => {
-//   console.log(e);
-// });
-
 Task.defaultProps = {
   changeTodo: Function.prototype,
+  oncurrentTimer: Function.prototype,
   todo: '',
   index: 0,
   id: '',
   completed: false,
-  time: '',
+  time: new Date(),
+  sec: undefined,
+  minutes: undefined,
 };
 Task.propTypes = {
   changeTodo: PropTypes.func,
+  oncurrentTimer: PropTypes.func,
   todo: PropTypes.node,
   infex: PropTypes.number,
   id: PropTypes.string,
   completed: PropTypes.bool,
   time: PropTypes.instanceOf(Date),
+  sec: PropTypes.number || PropTypes.undefined,
+  minutes: PropTypes.number || PropTypes.undefined,
 };
 
 export { Task };

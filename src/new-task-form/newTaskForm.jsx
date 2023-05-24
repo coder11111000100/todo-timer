@@ -6,28 +6,62 @@ import './newTaskForm.css';
 class NewTaskForm extends React.Component {
   constructor(props) {
     super(props);
-    this.state = { value: '' };
+    this.state = {
+      description: '',
+      minutes: '',
+      seconds: '',
+    };
   }
 
+  onLabelChange = (evt) => {
+    const { target } = evt;
+    const { name } = target;
+    this.setState({
+      [name]: target.value,
+    });
+  };
+
   render() {
-    const { value } = this.state;
+    const { description, minutes, seconds } = this.state;
     const { changeTodo } = this.props;
     return (
       <form
+        className="new-todo-form"
         onSubmit={(e) => {
           e.preventDefault();
-          changeTodo(value.trim());
-          this.setState({ value: '' });
+          changeTodo(description.trim(), { minutes, seconds });
+          this.setState({ description: '', minutes: '', seconds: '' });
         }}
       >
+        <button type="submit" aria-label="submission" />
         <input
-          onChange={(e) => {
-            this.setState({ value: e.target.value });
-          }}
           className="new-todo"
+          type="text"
+          name="description"
+          onChange={this.onLabelChange}
+          minLength={1}
+          maxLength={20}
           placeholder="What needs to be done?"
-          autoFocus
-          value={value}
+          value={description}
+          required
+        />
+        <input
+          className="new-todo-form__timer"
+          type="text"
+          name="minutes"
+          onChange={this.onLabelChange}
+          pattern="[0-9]*"
+          placeholder="Min"
+          value={minutes}
+        />
+        <input
+          className="new-todo-form__timer"
+          type="text"
+          name="seconds"
+          onChange={this.onLabelChange}
+          pattern="[0-6]{1}[0-9]*"
+          placeholder="Sec"
+          value={seconds}
         />
       </form>
     );

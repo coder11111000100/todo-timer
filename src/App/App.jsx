@@ -14,7 +14,8 @@ export default class App extends React.Component {
   }
 
   onsetTodo = (todo = '', props = {}) => {
-    if (props.remove) {
+    if (props?.remove) {
+      // удаление таски
       this.setState((prev) => {
         const filterStore = prev.store.filter((_, i) => i !== props.index);
         return {
@@ -22,7 +23,8 @@ export default class App extends React.Component {
         };
       });
     }
-    if (props.edit || typeof props.completed === 'boolean') {
+    if (props?.edit || typeof props.completed === 'boolean') {
+      // редактирование таски
       this.setState((prev) => {
         const { index, ...itemProps } = props;
         const newState = prev.store.slice();
@@ -32,7 +34,11 @@ export default class App extends React.Component {
         };
       });
     } else if (todo !== '') {
+      // создание таски и проверки на одинаковый name и '' таски
       this.setState((prev) => {
+        let { minutes, seconds: sec } = props;
+        minutes = +minutes;
+        sec = +sec;
         const { store } = prev;
         let hasValue = false;
         if (store.length) {
@@ -43,6 +49,8 @@ export default class App extends React.Component {
             store: [
               {
                 id: nanoid(3),
+                sec,
+                minutes,
                 value: todo,
                 completed: false,
                 edit: false,
@@ -59,6 +67,7 @@ export default class App extends React.Component {
 
   onClearTodos = () => {
     this.setState((prev) => {
+      // в stаte закидываются только завершенные таски
       const { store } = prev;
       const compl = store.filter((item) => !item.completed);
       return {
@@ -68,12 +77,26 @@ export default class App extends React.Component {
   };
 
   onFilterTodos = (select) => {
+    // фильтер в футоре all, completed, active
     this.setState({ key: select });
   };
 
   onCountNotCompleted = () => {
+    // для отображение активных тасок
     const { store } = this.state;
     return store.filter((item) => !item.completed);
+  };
+
+  oncurrentTimer = (id, minutes, sec) => {
+    // текущее время таски
+    this.setState((prev) => {
+      const newState = prev.store.slice();
+      const index = prev.store.findIndex((item) => item.id === id);
+      newState[index] = { ...newState[index], sec, minutes };
+      return {
+        store: [...newState],
+      };
+    });
   };
 
   render() {
@@ -85,7 +108,7 @@ export default class App extends React.Component {
           <NewTaskForm changeTodo={this.onsetTodo} />
         </header>
         <section className="main">
-          <TaskList state={store} changeTodo={this.onsetTodo} useKey={key} />
+          <TaskList store={store} changeTodo={this.onsetTodo} useKey={key} oncurrentTimer={this.oncurrentTimer} />
           <Footer
             clear={this.onClearTodos}
             onFilterTodos={this.onFilterTodos}
