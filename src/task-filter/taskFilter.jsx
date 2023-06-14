@@ -1,45 +1,38 @@
 /* eslint-disable react/no-array-index-key */
 
 import PropTypes from 'prop-types';
-import React from 'react';
+import { useState } from 'react';
 import './taskFilter.css';
 
-class TaskFilter extends React.Component {
-  constructor(props) {
-    super(props);
-    this.onFilterTodos = props.onFilterTodos;
-    this.state = { value: null };
-  }
+function TaskFilter({ onFilterTodos }) {
+  const [state, setState] = useState({ value: null });
+  const buttons = ['All', 'Active', 'Completed'];
 
-  onSelected = (e) => {
-    this.setState({ value: e.target.dataset.foo });
-    this.onFilterTodos(e.target.value);
+  const onSelected = (e) => {
+    setState({ value: e.target.dataset.foo });
+    onFilterTodos(e.target.value);
   };
 
-  render() {
-    const buttons = ['All', 'Active', 'Completed'];
-    const { value } = this.state;
-    return (
-      <ul className="filters">
-        {buttons.map((el, i) => {
-          return (
-            <li key={i}>
-              <button
-                type="button"
-                aria-label="Mute volume2"
-                data-foo={i}
-                value={el}
-                onClick={this.onSelected}
-                className={(value === i.toString() && 'selected').toString()}
-              >
-                {el}
-              </button>
-            </li>
-          );
-        })}
-      </ul>
-    );
-  }
+  return (
+    <ul className="filters">
+      {buttons.map((el, i) => {
+        return (
+          <li key={i}>
+            <button
+              type="button"
+              aria-label="Mute volume2"
+              data-foo={i}
+              value={el}
+              onClick={onSelected}
+              className={(state.value === i.toString() && 'selected').toString()}
+            >
+              {el}
+            </button>
+          </li>
+        );
+      })}
+    </ul>
+  );
 }
 
 TaskFilter.defaultProps = { onFilterTodos: Function.prototype };

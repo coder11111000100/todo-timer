@@ -1,4 +1,4 @@
-import React from 'react';
+import { useState } from 'react';
 import './App.css';
 import { nanoid } from 'nanoid';
 import { NewTaskForm } from '../new-task-form/newTaskForm';
@@ -7,35 +7,34 @@ import { TaskList } from '../task-list/taskList';
 
 import { Footer } from '../footer/footer';
 
-export default class App extends React.Component {
-  constructor() {
-    super();
-    this.state = { store: [], key: 'All' };
-  }
+function App() {
+  const [states, setStates] = useState({ store: [], key: 'All' });
 
-  onsetTodo = (todo = '', props = {}) => {
+  const onsetTodo = (todo = '', props = {}) => {
     if (props?.remove) {
       // удаление таски
-      this.setState((prev) => {
+      setStates((prev) => {
         const filterStore = prev.store.filter((_, i) => i !== props.index);
         return {
+          ...prev,
           store: filterStore,
         };
       });
     }
     if (props?.edit || typeof props.completed === 'boolean') {
       // редактирование таски
-      this.setState((prev) => {
+      setStates((prev) => {
         const { index, ...itemProps } = props;
         const newState = prev.store.slice();
         newState[index] = itemProps;
         return {
+          ...prev,
           store: [...newState],
         };
       });
     } else if (todo !== '') {
       // создание таски и проверки на одинаковый name и '' таски
-      this.setState((prev) => {
+      setStates((prev) => {
         let { minutes, seconds: sec } = props;
         minutes = +minutes;
         sec = +sec;
@@ -46,6 +45,7 @@ export default class App extends React.Component {
         }
         if (!hasValue) {
           return {
+            ...prev,
             store: [
               {
                 id: nanoid(3),
@@ -55,7 +55,6 @@ export default class App extends React.Component {
                 completed: false,
                 edit: false,
                 time: new Date(),
-                createWithNull: sec === 0 && minutes === 0
               },
               ...store,
             ],
@@ -66,57 +65,58 @@ export default class App extends React.Component {
     }
   };
 
-  onClearTodos = () => {
-    this.setState((prev) => {
+  const onClearTodos = () => {
+    setStates((prev) => {
       // в stаte закидываются только завершенные таски
       const { store } = prev;
       const compl = store.filter((item) => !item.completed);
       return {
+        ...prev,
         store: compl,
       };
     });
   };
 
-  onFilterTodos = (select) => {
+  const onFilterTodos = (select) => {
     // фильтер в футоре all, completed, active
-    this.setState({ key: select });
+    setStates((prev) => ({ ...prev, key: select }));
   };
 
-  onCountNotCompleted = () => {
+  const onCountNotCompleted = () => {
     // для отображение активных тасок
-    const { store } = this.state;
+    const { store } = states;
     return store.filter((item) => !item.completed);
   };
 
-  oncurrentTimer = (id, minutes, sec) => {
+  const oncurrentTimer = (id, minutes, sec) => {
     // текущее время таски
-    this.setState((prev) => {
+    setStates((prev) => {
       const newState = prev.store.slice();
       const index = prev.store.findIndex((item) => item.id === id);
-      newState[index] = { ...newState[index], sec, minutes };
+      newState[index] = {
+        ...newState[index],
+        sec,
+        minutes,
+      };
       return {
-        store: [...newState],
+        ...prev,
+        store: newState,
       };
     });
   };
 
-  render() {
-    const { store, key } = this.state;
-    return (
-      <section className="todoapp">
-        <header className="header">
-          <h1>todos</h1>
-          <NewTaskForm changeTodo={this.onsetTodo} />
-        </header>
-        <section className="main">
-          <TaskList store={store} changeTodo={this.onsetTodo} useKey={key} oncurrentTimer={this.oncurrentTimer} />
-          <Footer
-            clear={this.onClearTodos}
-            onFilterTodos={this.onFilterTodos}
-            count={this.onCountNotCompleted().length}
-          />
-        </section>
+  return (
+    <section className="todoapp">
+      <header className="header">
+        <h1>todos</h1>
+        <NewTaskForm changeTodo={onsetTodo} />
+      </header>
+      <section className="main">
+        <TaskList store={states.store} changeTodo={onsetTodo} useKey={states.key} oncurrentTimer={oncurrentTimer} />
+        <Footer clear={onClearTodos} onFilterTodos={onFilterTodos} count={onCountNotCompleted().length} />
       </section>
-    );
-  }
+    </section>
+  );
 }
+
+export { App };

@@ -1,71 +1,65 @@
 /* eslint-disable jsx-a11y/no-autofocus */
-import React from 'react';
+import { useState } from 'react';
 import PropTypes from 'prop-types';
 import './newTaskForm.css';
 
-class NewTaskForm extends React.Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      description: '',
-      minutes: '',
-      seconds: '',
-    };
-  }
+function NewTaskForm({ changeTodo }) {
+  const [state, setState] = useState({
+    description: '',
+    minutes: '',
+    seconds: '',
+  });
 
-  onLabelChange = (evt) => {
+  const onLabelChange = (evt) => {
     const { target } = evt;
     const { name } = target;
-    this.setState({
+    setState((pre) => ({
+      ...pre,
       [name]: target.value,
-    });
+    }));
   };
 
-  render() {
-    const { description, minutes, seconds } = this.state;
-    const { changeTodo } = this.props;
-    return (
-      <form
-        className="new-todo-form"
-        onSubmit={(e) => {
-          e.preventDefault();
-          changeTodo(description.trim(), { minutes, seconds });
-          this.setState({ description: '', minutes: '', seconds: '' });
-        }}
-      >
-        <button type="submit" aria-label="submission" />
-        <input
-          className="new-todo"
-          type="text"
-          name="description"
-          onChange={this.onLabelChange}
-          minLength={1}
-          maxLength={20}
-          placeholder="What needs to be done?"
-          value={description}
-          required
-        />
-        <input
-          className="new-todo-form__timer"
-          type="text"
-          name="minutes"
-          onChange={this.onLabelChange}
-          pattern="[0-9]*"
-          placeholder="Min"
-          value={minutes}
-        />
-        <input
-          className="new-todo-form__timer"
-          type="text"
-          name="seconds"
-          onChange={this.onLabelChange}
-          pattern="[0-6]{1}[0-9]*"
-          placeholder="Sec"
-          value={seconds}
-        />
-      </form>
-    );
-  }
+  return (
+    <form
+      className="new-todo-form"
+      onSubmit={(e) => {
+        e.preventDefault();
+        changeTodo(state.description.trim(), { minutes: state.minutes, seconds: state.seconds });
+        setState({ description: '', minutes: '', seconds: '' });
+      }}
+    >
+      <button type="submit" aria-label="submission" />
+      <input
+        className="new-todo"
+        type="text"
+        name="description"
+        onChange={onLabelChange}
+        minLength={1}
+        maxLength={20}
+        placeholder="What needs to be done?"
+        value={state.description}
+        required
+      />
+      <input
+        className="new-todo-form__timer"
+        type="text"
+        name="minutes"
+        onChange={onLabelChange}
+        pattern="[0-9]*"
+        placeholder="Min"
+        value={state.minutes}
+      />
+      <input
+        className="new-todo-form__timer"
+        type="text"
+        name="seconds"
+        onChange={onLabelChange}
+        pattern="[0-6]{1}[0-9]*"
+        placeholder="Sec"
+        value={state.seconds}
+      />
+    </form>
+  );
 }
 
 NewTaskForm.defaultProps = {
